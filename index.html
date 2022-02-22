@@ -1,0 +1,124 @@
+<head>
+    <title>Word Game Yeehaw</title>
+
+    <style>
+        body {
+            background: #111;
+            color: #eee;
+            text-align: center;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 24px;
+            padding: 2rem;
+        }
+        #desc {
+            font-size: 1rem;
+            color: #666;
+        }
+        #submitted-words {
+            color: #666;
+        }
+        input[type="text"] {
+            padding: 1rem;
+            font-family: 'Courier New', Courier, monospace;
+            text-align: center;
+            font-size: 24px;
+            border: none;
+        }
+        input[type="submit"] {
+            background: #eee;
+            color: #111;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 18px;
+            border: none !important;
+            margin-top: 1rem;
+            padding: 1rem;
+        }
+        #initial-word,
+        #terminal-word {
+            font-weight: 900;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Word Game Yeehaw</h1>
+    <p id="desc">
+        Get to the word on the bottom by chaining similar words.<br />
+        Words are similar if they contain 3 of the same letters.<br />
+        (This is just a prototype!!!)
+    </p>
+    <p id="initial-word"></p>
+    <div id="submitted-words"></div>
+    <input type="text" maxlength="6" id="word">
+    <input type="submit" id="submit" onclick="submitWord()">
+    <p id="terminal-word"></p>  
+</body>
+
+<script src="dictionary.js"></script>
+<script>
+    const lengthOfWords = 6;
+    const lettersNeededToBeSimilar = 3;
+    var currentWord = "";
+    var numWordsSubmitted = 0;
+
+    function sample(a) {
+        return a[Math.floor(Math.random() * a.length)];
+    }
+
+    function isSimilarWords(w1, w2, s = lettersNeededToBeSimilar) {
+        var similarLetters = 0;
+        var referenceWord = ("" + w1).split(""); // Word to check, remove when match found
+        var testingWord = ("" + w2).split(""); // Word to test, iterate through letters
+
+        for (t of testingWord) {
+            var foundLetter = false;
+            var i = 0;
+            while(!foundLetter && i < referenceWord.length) {
+                if (t == referenceWord[i]) {
+                    similarLetters += 1;
+                    referenceWord.splice(i, 1);
+                    console.log(referenceWord);
+                }
+                i++;
+            }
+        }
+
+        return (similarLetters >= s);
+    }
+
+    function submitWord() {
+        var submittedWord = (document.getElementById("word").value).trim().toLowerCase();
+        var isAWord = dictionaryByLength[lengthOfWords].includes(submittedWord);
+        var isSimilar = isSimilarWords(currentWord, submittedWord);
+
+        if (isAWord && isSimilar) {
+            document.getElementById("submitted-words").innerHTML += `
+                <p>${submittedWord}</p>
+            `;
+
+            currentWord = submittedWord;
+            numWordsSubmitted += 1;
+            document.getElementById("word").value = "";
+        } else {
+            return;
+        }
+
+        var isSimilarToTerminalWord = isSimilarWords(terminalWord, submittedWord);
+        if (isSimilarToTerminalWord) {
+            document.getElementById("terminal-word").innerHTML += `<br /><br />YOU GOT THE WORD in ${numWordsSubmitted} words!`;
+            document.getElementById("submit").remove();
+            document.getElementById("word").remove();
+        }
+    }
+    
+    var initialWord = sample(dictionaryByLength[lengthOfWords]);
+    document.getElementById("initial-word").innerHTML += initialWord;
+    currentWord = initialWord;
+
+    var terminalWord = sample(dictionaryByLength[lengthOfWords]);
+    while (isSimilarWords(initialWord, terminalWord, 1)) {
+        var terminalWord = sample(dictionaryByLength[lengthOfWords]);
+    }
+    document.getElementById("terminal-word").innerHTML += terminalWord;
+
+</script>
